@@ -8,14 +8,10 @@ import (
 func main() {
 	mps := pkg.NewMapPubSub[string]()
 	defer mps.Close()
-	if err := mps.Subscribe("topic1"); err != nil {
-		panic(err)
-	}
+	mps.Subscribe("topic1")
 	mps.Publish("topic1","halo")
 	mps.Publish("topic1","dunia")
-	if err := mps.Subscribe("topic2"); err != nil {
-		panic(err)
-	}
+	mps.Subscribe("topic2")
 	mps.Publish("topic2","halo")
 	fmt.Scanln()
 

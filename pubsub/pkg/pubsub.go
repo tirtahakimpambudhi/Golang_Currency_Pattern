@@ -17,7 +17,7 @@ func NewMapPubSub[T any]() *MapPubSub[T] {
 		pubsubs: make(map[string]*PubSub[T]),
 	}
 }
-func (mps *MapPubSub[T]) Subscribe(topic string) (error) {
+func (mps *MapPubSub[T]) Subscribe(topic string) {
 	mps.mu.RLock() // Menggunakan RWMutex untuk read lock
 	defer mps.mu.RUnlock()
 	ps , ok := mps.pubsubs[topic]
@@ -40,7 +40,7 @@ func (mps *MapPubSub[T]) Subscribe(topic string) (error) {
 			}
 		}
 	}()
-	return nil
+
 }
 func (mps *MapPubSub[T]) Publish(topic string, value T) {
 	mps.mu.Lock() // Write lock untuk memodifikasi map
