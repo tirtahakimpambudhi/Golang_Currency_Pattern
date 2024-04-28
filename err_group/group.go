@@ -1,11 +1,14 @@
 package errgroup
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"io"
 	"os"
 	"sync"
+
+	errg "golang.org/x/sync/errgroup"
 )
 
 func read(filename string) (chan []string,error){
@@ -51,4 +54,39 @@ func WaitGroup() chan struct{} {
 	}()
 	return ch
 	
+}
+
+func ErrGroup(ctx context.Context) chan struct {} {
+	eg , ctx := errg.WithContext(ctx)
+	ch := make(chan struct{}, 1)
+	for _, file := range []string{"one.csv","two.csv","three.csv"} {
+		fl := file
+		eg.Go(func() error {
+			ch , err := read(fl)
+			if err != nil {
+				return fmt.Errorf("error reading %s",err.Error())
+			}
+			for line := range ch {
+				fmt.Println(line)
+			}
+			for {
+				select {
+				case <- ctx.Done():
+					return ctx.Err()
+				case line , ok := <- ch:
+					if !ok {
+						return nil
+					}
+				fmt.Println(line)
+				}
+			}
+		})
+	}
+	go func() {
+		if err := eg.Wait(); err != nil {
+			panic(eg.Wait().Error())
+		}
+		close(ch)
+	}()
+	return ch
 }
