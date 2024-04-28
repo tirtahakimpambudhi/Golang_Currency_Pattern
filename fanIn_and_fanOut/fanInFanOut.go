@@ -28,6 +28,7 @@ func Merge(chs ...chan []string) chan []string {
 	}()
 	return out
 }
+// Merge for multiple channel into one channel without waitgroup
 func MergeWithOutWait(chs ...chan []string) chan []string {
 	wait := make(chan struct{},len(chs)) 
 	out := make(chan []string)
