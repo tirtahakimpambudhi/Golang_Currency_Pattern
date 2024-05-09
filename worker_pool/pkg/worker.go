@@ -1,42 +1,38 @@
 package pkg
 
 import (
-	"fmt"
+	"go_wp/contract"
 	"sync"
 )
 
-type Task struct {
-	ID int
-}
-
-func (t *Task) Run() {
-	fmt.Println(t.ID)
-}
 
 type WorkerPool struct {
-	Tasks    []Task
+	Tasks    []contract.Task
 	Worker   int
-	TaskChan chan Task
+	TaskChan chan contract.Task
 	wg       sync.WaitGroup
 }
 
 func (w *WorkerPool) work() {
 	for task := range w.TaskChan {
-		task.Run()
+		task.Proccess()
+		w.wg.Done()
 	}
-	w.wg.Done()
 }
 
 func (w *WorkerPool) Run() {
-	w.TaskChan = make(chan Task, len(w.Tasks))
+	w.TaskChan = make(chan contract.Task, len(w.Tasks))
 
 	w.wg.Add(len(w.Tasks))
-	defer w.wg.Done()
+	defer w.wg.Wait()
+	//receieve work 
 	for i := 0; i < w.Worker; i++ {
 		go w.work()
 	}
+	//send work
 	for _, task := range w.Tasks {
 		w.TaskChan <- task
 	}
 	close(w.TaskChan)
 }
+
